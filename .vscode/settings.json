@@ -5,7 +5,7 @@
   "editor.formatOnSaveMode": "file",
   "python.formatting.provider": "black",
   "python.linting.flake8Enabled": true,
-  "python.pythonPath": "/var/home/yajo/prodevel/docker-socket-proxy/.venv/bin/python3.9",
+  "python.pythonPath": ".venv/bin/python",
   "python.testing.pytestEnabled": true,
   "[python]": {
     "editor.defaultFormatter": "ms-python.python",
