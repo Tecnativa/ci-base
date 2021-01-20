@@ -12,6 +12,7 @@ plumbum = "^1.6.9"
 [tool.poetry.dev-dependencies]
 pytest-xdist = "^2.1.0"
 plumbum = "^1.6.9"
+black = {version = "^20.8b1", allow-prereleases = true}
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
