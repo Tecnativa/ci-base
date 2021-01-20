@@ -3,15 +3,31 @@ from pathlib import Path
 import pytest
 from plumbum.cmd import docker
 
-IMAGE = "test:ci-base"
+
+def pytest_addoption(parser):
+    """Allow prebuilding image for local testing."""
+    parser.addoption(
+        "--prebuild", action="store_true", help="Build local image before testing"
+    )
+    parser.addoption(
+        "--image",
+        action="store",
+        default="test:ci-base",
+        help="Specify testing image name",
+    )
 
 
+# TODO Modify scope when https://github.com/pytest-dev/pytest-xdist/issues/271 is fixed
 @pytest.fixture(scope="session")
-def image():
-    docker("image", "build", "-t", IMAGE, Path(__file__).parent.parent)
-    return IMAGE
+def image(request):
+    """Get image name. Builds it if needed."""
+    image = request.config.getoption("--image")
+    if request.config.getoption("--prebuild"):
+        docker("image", "build", "-t", image, Path(__file__).parent.parent)
+    return image
 
 
+# TODO Modify scope when https://github.com/pytest-dev/pytest-xdist/issues/271 is fixed
 @pytest.fixture(scope="session")
 def cexec(image):
     """Return an exec shorthand for a running ci-base container."""

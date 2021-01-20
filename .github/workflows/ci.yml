@@ -16,6 +16,7 @@ on:
         required: false
 
 env:
+  IMAGE_NAME: tecnativa/ci-base
   LANG: "en_US.utf-8"
   LC_ALL: "en_US.utf-8"
   PIP_CACHE_DIR: ${{ github.workspace }}/.cache.~/pip
@@ -24,7 +25,6 @@ env:
   POETRY_VIRTUALENVS_IN_PROJECT: "true"
   PYTEST_ADDOPTS: ${{ github.event.inputs.pytest_addopts }}
   PYTHONIOENCODING: "UTF-8"
-  IMAGE_NAME: tecnativa/ci-base
 
 jobs:
   test:
@@ -53,10 +53,9 @@ jobs:
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
       - run: poetry install
       # Test
-      - run: poetry run pytest
+      - run: poetry run pytest --prebuild
 
   deploy:
-    needs: test
     runs-on: ubuntu-latest
     services:
       registry:
@@ -72,7 +71,6 @@ jobs:
           key:
             buildx|${{ secrets.CACHE_DATE }}|${{ runner.os }}|${{
             hashFiles('Dockerfile') }}
-      - uses: docker/setup-qemu-action@v1
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       - name: Set up Docker Buildx
