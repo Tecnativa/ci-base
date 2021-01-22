@@ -1,12 +1,10 @@
-name: ci
+name: test
 
-on:
+"on":
   pull_request:
   push:
     branches:
       - main
-    tags:
-      - "*"
   workflow_dispatch:
     inputs:
       pytest_addopts:
@@ -16,7 +14,6 @@ on:
         required: false
 
 env:
-  IMAGE_NAME: tecnativa/ci-base
   LANG: "en_US.utf-8"
   LC_ALL: "en_US.utf-8"
   PIP_CACHE_DIR: ${{ github.workspace }}/.cache.~/pip
@@ -27,42 +24,50 @@ env:
   PYTHONIOENCODING: "UTF-8"
 
 jobs:
-  test:
+  build-test:
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
-        python: [3.9]
-    runs-on: ubuntu-latest
+        python:
+          - 3.9
     steps:
-      # Prepare
+      # Prepare environment
       - uses: actions/checkout@v2
+      # Set up and run tests
       - name: Install python
         uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python }}
+      - name: Generate cache key CACHE
+        run:
+          echo "CACHE=${{ secrets.CACHE_DATE }} ${{ runner.os }} $(python -VV |
+          sha256sum | cut -d' ' -f1) ${{ hashFiles('pyproject.toml') }} ${{
+          hashFiles('poetry.lock') }}" >> $GITHUB_ENV
       - uses: actions/cache@v2
         with:
           path: |
             .cache.~
             .venv
             ~/.local/bin
-          key:
-            venv|${{ secrets.CACHE_DATE }}|${{ runner.os }}|${{ matrix.python }}|${{
-            hashFiles('pyproject.toml', 'poetry.lock') }}
+          key: venv ${{ env.CACHE }}
       - run: pip install poetry
       - name: Patch $PATH
         run: echo "$HOME/.local/bin" >> $GITHUB_PATH
       - run: poetry install
-      # Test
+      # Run tests
       - run: poetry run pytest --prebuild
-
-  deploy:
-    runs-on: ubuntu-latest
+  build-push:
+    runs-on: ubuntu-20.04
     services:
       registry:
         image: registry:2
         ports:
           - 5000:5000
+    env:
+      DOCKER_IMAGE_NAME: ${{ github.repository }}
+      PUSH: ${{ toJSON(github.event_name != 'pull_request') }}
     steps:
+      # Set up Docker Environment
       - uses: actions/checkout@v2
       - uses: actions/cache@v2
         with:
@@ -79,63 +84,67 @@ jobs:
         with:
           driver-opts: network=host
           install: true
+      # Build and push
       - name: Docker meta for local images
         id: docker_meta_local
         uses: crazy-max/ghaction-docker-meta@v1
         with:
-          images: localhost:5000/${{ env.IMAGE_NAME }}
+          images: localhost:5000/${{ env.DOCKER_IMAGE_NAME }}
           tag-edge: true
           tag-semver: |
             {{version}}
+            {{major}}
             {{major}}.{{minor}}
-      - name: Build and push to local registry
+      - name: Build and push to local (test) registry
         uses: docker/build-push-action@v2
         with:
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
           context: .
           file: ./Dockerfile
-          labels: ${{ steps.docker_meta_local.outputs.labels }}
-          push: true
-          tags: ${{ steps.docker_meta_local.outputs.tags }}
-          # Limit to platforms supported by base image
           platforms: |
             linux/amd64
             linux/arm/v7
             linux/arm64/v8
             linux/s390x
-      # Next jobs only happen outside of pull requests
-      - name: Docker meta for public images
-        id: docker_meta_public
-        if: github.event_name != 'pull_request'
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          images: ghcr.io/${{ env.IMAGE_NAME }}
-          tag-edge: true
-          tag-semver: |
-            {{version}}
-            {{major}}.{{minor}}
+          load: false
+          push: true
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          labels: ${{ steps.docker_meta_local.outputs.labels }}
+          tags: ${{ steps.docker_meta_local.outputs.tags }}
+      # Next jobs only happen outside of pull requests and on main branches
       - name: Login to GitHub Container Registry
+        if: ${{ fromJSON(env.PUSH) }}
         uses: docker/login-action@v1
-        if: github.event_name != 'pull_request'
         with:
           registry: ghcr.io
           username: ${{ secrets.BOT_LOGIN }}
           password: ${{ secrets.BOT_TOKEN }}
-      - name: Push to public registry
-        uses: docker/build-push-action@v2
-        if: github.event_name != 'pull_request'
+      - name: Docker meta for public images
+        if: ${{ fromJSON(env.PUSH) }}
+        id: docker_meta_public
+        uses: crazy-max/ghaction-docker-meta@v1
         with:
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          images: |
+            ghcr.io/${{ env.DOCKER_IMAGE_NAME }}
+          tag-edge: true
+          tag-semver: |
+            {{version}}
+            {{major}}
+            {{major}}.{{minor}}
+      - name: Build and push to public registry(s)
+        if: ${{ fromJSON(env.PUSH) }}
+        uses: docker/build-push-action@v2
+        with:
           context: .
           file: ./Dockerfile
-          labels: ${{ steps.docker_meta_public.outputs.labels }}
-          push: true
-          tags: ${{ steps.docker_meta_public.outputs.tags }}
-          # Limit to platforms supported by base image
           platforms: |
             linux/amd64
             linux/arm/v7
             linux/arm64/v8
             linux/s390x
+          load: false
+          push: true
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
+          labels: ${{ steps.docker_meta_public.outputs.labels }}
+          tags: ${{ steps.docker_meta_public.outputs.tags }}
