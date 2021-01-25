@@ -1,12 +1,11 @@
 # Changes here will be overwritten by Copier; do NOT edit manually
-_commit: v0.1.0a9
+_commit: v0.1.1
 _src_path: https://github.com/Tecnativa/image-template.git
 dockerhub_image: ""
 image_platforms:
   - linux/amd64
   - linux/arm/v7
   - linux/arm64/v8
-  - linux/ppc64le
   - linux/s390x
 main_branches:
   - main
