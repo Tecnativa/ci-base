@@ -4,9 +4,7 @@ _src_path: https://github.com/Tecnativa/image-template.git
 dockerhub_image: ""
 image_platforms:
   - linux/amd64
-  - linux/arm/v7
   - linux/arm64/v8
-  - linux/s390x
 main_branches:
   - main
 project_name: ci-base
