@@ -15,6 +15,7 @@ RUN dnf install -y \
         poetry \
         pre-commit \
         python \
+        python-pip \
         skopeo \
     && pip install --no-cache-dir \
         versort \
