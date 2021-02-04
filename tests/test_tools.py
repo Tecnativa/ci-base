@@ -21,4 +21,4 @@ def test_binaries(cexec, tool):
 
 def test_python_libselinux(cexec):
     """Ensure python libselinux package is installed."""
-    assert cexec("python", "-c", "import selinux")
+    assert cexec("python", "-c", "import selinux; print(selinux.__file__)")

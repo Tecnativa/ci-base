@@ -10,5 +10,6 @@
   "[python]": {
     "editor.defaultFormatter": "ms-python.python",
     "editor.formatOnSave": true
-  }
+  },
+  "python.testing.pytestArgs": ["--prebuild"]
 }
