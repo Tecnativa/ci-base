@@ -16,6 +16,7 @@ RUN dnf install -y \
         pre-commit \
         python \
         python-pip \
+        python3-libselinux \
         skopeo \
     && pip install --no-cache-dir \
         versort \
