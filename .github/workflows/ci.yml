@@ -7,6 +7,9 @@ name: Build, Test & Deploy
       - main
     tags:
       - "v*"
+  schedule:
+    # See https://crontab.guru/weekly
+    - cron: 0 0 * * 0
   workflow_dispatch:
     inputs:
       pytest_addopts:
