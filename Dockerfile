@@ -18,6 +18,8 @@ RUN dnf install -y \
         python-pip \
         python3-libselinux \
         skopeo \
+    && dnf group install -y \
+        'C Development Tools and Libraries' \
     && pip install --no-cache-dir \
         versort \
     && dnf clean all \
