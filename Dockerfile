@@ -21,6 +21,7 @@ RUN dnf install -y \
         python3-devel \
         python3-libselinux \
         skopeo \
+        which \
     && pip install --no-cache-dir \
         versort \
     && dnf clean all \
