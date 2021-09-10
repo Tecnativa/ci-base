@@ -23,6 +23,7 @@ RUN dnf install -y \
         skopeo \
         which \
     && pip install --no-cache-dir \
+        git-aggregator \
         versort \
     && dnf clean all \
     && sync
