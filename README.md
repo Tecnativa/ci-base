@@ -13,6 +13,7 @@ dependencies needed to run CI/CD workloads.
 -   docker
 -   docker-compose
 -   git
+-   git-aggregator
 -   jq
 -   pipx
 -   podman
