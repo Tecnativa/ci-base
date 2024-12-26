@@ -14,7 +14,6 @@ RUN dnf install -y \
         moby-engine \
         pipx \
         podman \
-        poetry \
         pre-commit \
         python \
         python-pip \
@@ -27,3 +26,4 @@ RUN dnf install -y \
         versort \
     && dnf clean all \
     && sync
+RUN pip install --no-cache-dir --upgrade "poetry==1.8.3"
