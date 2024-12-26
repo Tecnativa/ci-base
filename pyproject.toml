@@ -6,7 +6,7 @@ authors = ["Jairo Llopis <jairo.llopis@tecnativa.com>"]
 license = "BOOST-1.0"
 
 [tool.poetry.dependencies]
-python = "^3.9"
+python = "^3.10"
 plumbum = "^1.6.9"
 
 [tool.poetry.dev-dependencies]
