@@ -20,7 +20,7 @@ repos:
         args:
           - --plugin=@prettier/plugin-xml
   - repo: https://github.com/myint/autoflake
-    rev: v1.4
+    rev: v2.2.0
     hooks:
       - id: autoflake
         args:
@@ -35,17 +35,17 @@ repos:
     hooks:
       - id: pyupgrade
   - repo: https://github.com/psf/black
-    rev: 20.8b1
+    rev: 23.9.1
     hooks:
       - id: black
-  - repo: https://github.com/timothycrosley/isort
-    rev: 5.7.0
+  - repo: https://github.com/PyCQA/isort.git
+    rev: 5.12.0
     hooks:
       - id: isort
         args:
           - --settings=.
-  - repo: https://gitlab.com/pycqa/flake8
-    rev: 3.8.4
+  - repo: https://github.com/pycqa/flake8
+    rev: 6.1.0
     hooks:
       - &flake8
         id: flake8
