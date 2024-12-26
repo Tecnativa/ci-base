@@ -1,4 +1,4 @@
-FROM fedora:34
+FROM fedora:36
 ENV LANG=C.UTF-8 \
     PIPX_BIN_DIR="/usr/local/bin" \
     PIPX_HOME=/usr/local/share/pipx
