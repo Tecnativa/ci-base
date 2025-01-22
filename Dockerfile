@@ -27,3 +27,4 @@ RUN dnf install -y \
     && dnf clean all \
     && sync
 RUN pip install --no-cache-dir --upgrade "poetry==1.8.3"
+RUN pip install --no-cache-dir ansible-core==2.12.10
