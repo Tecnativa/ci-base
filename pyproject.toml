@@ -4,12 +4,14 @@ version = "0.0.0"
 description = "Base image for CI/CD workloads"
 authors = ["Jairo Llopis <jairo.llopis@tecnativa.com>"]
 license = "BOOST-1.0"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.9"
+typed-ast = "^1.5.5"
 plumbum = "^1.6.9"
 
-[tool.poetry.dev-dependencies]
+[tool.poetry.group.dev.dependencies]
 black = {version = "^20.8b1", allow-prereleases = true}
 flake8 = "^3.8.4"
 plumbum = "^1.6.9"
