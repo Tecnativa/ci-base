@@ -1,7 +1,7 @@
 FROM fedora:36
 ENV LANG=C.UTF-8 \
     PIPX_BIN_DIR="/usr/local/bin" \
-    PIPX_HOME=/usr/local/share/pipx
+    PIPX_HOME=/usr/local/share/pipx \
     DOCKER_VERSION=27.3.1
 RUN dnf install -y \
         "@C Development Tools and Libraries" \
