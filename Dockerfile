@@ -31,4 +31,4 @@ RUN dnf install -y \
     && sync
 RUN pip install --no-cache-dir poetry
 RUN pip install --no-cache-dir ansible-core==2.12.10
-RUN pip install --no-cache-dir "requests<2.32"
+RUN pip install --no-cache-dir "requests<2.32" "urllib3<2"
