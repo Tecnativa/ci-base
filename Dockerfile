@@ -51,4 +51,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     pre-commit \
     pre-commit-uv \
     pipx \
-    python-on-whales
+    python-on-whales \
+    docker \
+    git-aggregator \
+    versort \
