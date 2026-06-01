@@ -58,6 +58,9 @@ jobs:
   build-test-push:
     runs-on: ubuntu-24.04
     if: github.repository == 'tecnativa/ci-base' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-qemu-action@v4
@@ -98,7 +101,7 @@ jobs:
             ghcr.io/tecnativa/ci-base
           tags: |
             type=ref,event=pr
-            type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=edge,enable={{is_default_branch}}
             type=semver,pattern={{version}}
       - name: Build and push to GHCR
         uses: docker/build-push-action@v4
