@@ -95,7 +95,7 @@ jobs:
         uses: crazy-max/ghaction-docker-meta@v6
         with:
           images: |
-            ghcr.io/tecnativa/docker-whitelist-gateway-service
+            ghcr.io/tecnativa/ci-base
           tags: |
             type=ref,event=pr
             type=raw,value=latest,enable={{is_default_branch}}
