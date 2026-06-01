@@ -3,7 +3,7 @@ ENV LANG=C.UTF-8 \
     DEBIAN_FRONTEND=noninteractive \
     UV_LINK_MODE=copy \
     DOCKER_VERSION="5:29.4.3-1~debian.13~trixie" \
-    PYTHON_VERSION="3.12" \
+    PYTHON_VERSION="3.11" \
     DOCKER_BUILDKIT=1
 ARG LEGACY_COMPOSE=1
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
