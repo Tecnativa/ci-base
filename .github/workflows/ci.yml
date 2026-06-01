@@ -1,6 +1,6 @@
 name: Build, Test & Deploy
 
-"on":
+on:
   pull_request:
   push:
     branches:
@@ -21,129 +21,97 @@ name: Build, Test & Deploy
 env:
   LANG: "en_US.utf-8"
   LC_ALL: "en_US.utf-8"
-  PIP_CACHE_DIR: ${{ github.workspace }}/.cache.~/pip
-  PIPX_HOME: ${{ github.workspace }}/.cache.~/pipx
-  POETRY_CACHE_DIR: ${{ github.workspace }}/.cache.~/pypoetry
-  POETRY_VIRTUALENVS_IN_PROJECT: "true"
   PYTEST_ADDOPTS: ${{ github.event.inputs.pytest_addopts }}
   PYTHONIOENCODING: "UTF-8"
+  UV_CACHE_DIR: /tmp/.uv-cache
 
 jobs:
-  build-test:
+  build-test-pr:
     runs-on: ubuntu-24.04
-    strategy:
-      matrix:
-        python:
-          - 3.9
+    if: github.event_name == 'pull_request'
     steps:
-      # Prepare environment
-      - uses: actions/checkout@v2
-      # Set up and run tests
-      - name: Install python
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-      - name: Generate cache key CACHE
-        run:
-          echo "CACHE=${{ secrets.CACHE_DATE }} ${{ runner.os }} $(python -VV |
-          sha256sum | cut -d' ' -f1) ${{ hashFiles('pyproject.toml') }} ${{
-          hashFiles('poetry.lock') }}" >> $GITHUB_ENV
-      - uses: actions/cache@v4
-        with:
-          path: |
-            .cache.~
-            .venv
-            ~/.local/bin
-          key: venv ${{ env.CACHE }}
-      - run: pip install poetry
-      - name: Patch $PATH
-        run: echo "$HOME/.local/bin" >> $GITHUB_PATH
-      - run: poetry install
-      # Run tests
-      - run: poetry run pytest --prebuild
-  build-push:
-    runs-on: ubuntu-24.04
-    services:
-      registry:
-        image: registry:2
-        ports:
-          - 5000:5000
-    env:
-      DOCKER_IMAGE_NAME: ${{ github.repository }}
-      PUSH: ${{ toJSON(github.event_name != 'pull_request') }}
-    steps:
-      # Set up Docker Environment
-      - uses: actions/checkout@v2
-      - uses: actions/cache@v4
-        with:
-          path: |
-            /tmp/.buildx-cache
-          key: buildx|${{ secrets.CACHE_DATE }}|${{ runner.os }}
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
         id: buildx
-        uses: docker/setup-buildx-action@v1
-        with:
-          driver-opts: network=host
-          install: true
-      # Build and push
-      - name: Docker meta for local images
-        id: docker_meta_local
-        uses: crazy-max/ghaction-docker-meta@v1
-        with:
-          images: localhost:5000/${{ env.DOCKER_IMAGE_NAME }}
-          tag-edge: true
-          tag-semver: |
-            {{version}}
-            {{major}}
-            {{major}}.{{minor}}
-      - name: Build and push to local (test) registry
-        uses: docker/build-push-action@v2
+        uses: docker/setup-buildx-action@v4
+      - name: Build image
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile
           platforms: |
             linux/amd64
-            linux/arm64/v8
+            linux/arm64
           load: false
-          push: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          labels: ${{ steps.docker_meta_local.outputs.labels }}
-          tags: ${{ steps.docker_meta_local.outputs.tags }}
-      # Next jobs only happen outside of pull requests and on main branches
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+      - name: Run tests
+        run: uv run pytest
+  build-test-push:
+    runs-on: ubuntu-24.04
+    if: github.repository == 'tecnativa/ci-base' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-qemu-action@v4
+      - name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v4
+      - name: Build image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: |
+            linux/amd64
+            linux/arm64
+          load: false
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+      - name: Install the project
+        run: uv sync --locked --all-extras --dev
+      - name: Run tests
+        run: uv run pytest
       - name: Login to GitHub Container Registry
-        if: ${{ fromJSON(env.PUSH) }}
-        uses: docker/login-action@v1
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
-          username: ${{ secrets.BOT_LOGIN }}
-          password: ${{ secrets.BOT_TOKEN }}
-      - name: Docker meta for public images
-        if: ${{ fromJSON(env.PUSH) }}
-        id: docker_meta_public
-        uses: crazy-max/ghaction-docker-meta@v1
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Docker meta for PR image
+        id: docker_meta
+        uses: crazy-max/ghaction-docker-meta@v6
         with:
           images: |
-            ghcr.io/${{ env.DOCKER_IMAGE_NAME }}
-          tag-edge: true
-          tag-semver: |
-            {{version}}
-            {{major}}
-            {{major}}.{{minor}}
-      - name: Build and push to public registry(s)
-        if: ${{ fromJSON(env.PUSH) }}
-        uses: docker/build-push-action@v2
+            ghcr.io/tecnativa/docker-whitelist-gateway-service
+          tags: |
+            type=ref,event=pr
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=semver,pattern={{version}}
+      - name: Build and push to GHCR
+        uses: docker/build-push-action@v4
         with:
           context: .
           file: ./Dockerfile
           platforms: |
             linux/amd64
-            linux/arm64/v8
+            linux/arm64
           load: false
           push: true
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache,mode=max
-          labels: ${{ steps.docker_meta_public.outputs.labels }}
-          tags: ${{ steps.docker_meta_public.outputs.tags }}
+          provenance: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: ${{ steps.docker_meta.outputs.labels }}
+          tags: ${{ steps.docker_meta.outputs.tags }}

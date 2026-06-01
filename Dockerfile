@@ -1,34 +1,54 @@
-FROM fedora:36
+FROM ghcr.io/astral-sh/uv:trixie
 ENV LANG=C.UTF-8 \
-    PIPX_BIN_DIR="/usr/local/bin" \
-    PIPX_HOME=/usr/local/share/pipx \
-    DOCKER_VERSION=27.3.1
-RUN dnf install -y \
-        "@C Development Tools and Libraries" \
-        buildah \
-        curl \
-        docker-compose \
-        fish \
-        git \
-        jq \
-        libffi-devel \
-        pipx \
-        podman \
-        pre-commit \
-        python \
-        python-pip \
-        python3-devel \
-        python3-libselinux \
-        skopeo \
-        which \
-     && curl -fsSLO "https://download.docker.com/linux/static/stable/x86_64/docker-${DOCKER_VERSION}.tgz" \
-      && tar xzvf "docker-${DOCKER_VERSION}.tgz" --strip 1 -C /usr/local/bin docker/docker \
-      && rm "docker-${DOCKER_VERSION}.tgz" \
-    && pip install --no-cache-dir \
-        git-aggregator \
-        versort \
-    && dnf clean all \
-    && sync
-RUN pip install --no-cache-dir poetry
-RUN pip install --no-cache-dir ansible-core==2.12.10
-RUN pip install --no-cache-dir "requests<2.32" "urllib3<2"
+    DEBIAN_FRONTEND=noninteractive \
+    UV_LINK_MODE=copy \
+    DOCKER_VERSION="5:29.4.3-1~debian.13~trixie" \
+    PYTHON_VERSION="3.12" \
+    DOCKER_BUILDKIT=1
+ARG LEGACY_COMPOSE=1
+RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
+    --mount=type=cache,target=/var/lib/apt,sharing=locked \
+    apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    gnupg \
+    build-essential \
+    fish \
+    git \
+    jq \
+    libffi-dev \
+    podman \
+    buildah \
+    skopeo \
+    which \
+    && install -m 0755 -d /etc/apt/keyrings \
+    && curl -fsSL https://download.docker.com/linux/debian/gpg \
+    | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
+    && chmod a+r /etc/apt/keyrings/docker.gpg  \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+    https://download.docker.com/linux/debian trixie stable" \
+    > /etc/apt/sources.list.d/docker.list \
+    && apt-get update  \
+    && apt-get install -y --no-install-recommends \
+    docker-ce=${DOCKER_VERSION} \
+    docker-ce-cli=${DOCKER_VERSION} \
+    containerd.io \
+    docker-buildx-plugin \
+    docker-compose-plugin \
+    &&  curl -SL https://github.com/docker/compose/releases/download/v5.1.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose \
+    &&  chmod +x /usr/local/bin/docker-compose
+RUN uv venv -p ${PYTHON_VERSION} /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install \
+    "ansible-core==2.16.14" \
+    poetry \
+    requests \
+    urllib3 \
+    copier \
+    invoke \
+    pre-commit \
+    pre-commit-uv \
+    pipx \
+    python-on-whales

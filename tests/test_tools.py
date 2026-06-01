@@ -1,24 +1,24 @@
 import pytest
+from python_on_whales import Container
 
 TOOLS = (
     "buildah",
     "docker-compose",
+    "docker compose",
     "docker",
     "git",
+    "uv",
     "pipx",
-    "podman",
     "poetry",
+    "podman",
     "pre-commit",
     "skopeo",
+    "copier",
+    "invoke",
 )
 
 
 @pytest.mark.parametrize("tool", TOOLS)
-def test_binaries(cexec, tool):
+def test_binaries(container: Container, tool):
     """Make sure all required binaries are installed."""
-    assert cexec(tool, "--version")
-
-
-def test_python_libselinux(cexec):
-    """Ensure python libselinux package is installed."""
-    assert cexec("python", "-c", "import selinux; print(selinux.__file__)")
+    assert container.execute(command=tool.split(" ") + ["--version"])
