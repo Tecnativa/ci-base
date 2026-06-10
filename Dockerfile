@@ -53,4 +53,5 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     pipx \
     python-on-whales \
     docker \
-    git-aggregator
+    git-aggregator \
+    docker
