@@ -1,0 +1,14 @@
+# Changes here will be overwritten by Copier; do NOT edit manually
+_commit: v1.0.0
+_src_path: https://github.com/Tecnativa/image-template
+image_name: Tecnativa/ci-base
+image_platforms:
+  - amd64
+  - arm64
+main_branches:
+  - main
+project_name: ci-base
+project_owner: Tecnativa
+pytest: true
+target_registries:
+  - ghcr.io
