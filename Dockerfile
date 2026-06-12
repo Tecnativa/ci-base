@@ -43,6 +43,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install \
     "ansible-core==2.16.14" \
+    "ansible>=9.0.0,<10.0.0" \
     poetry \
     requests \
     urllib3 \
