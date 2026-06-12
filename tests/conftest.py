@@ -2,17 +2,37 @@ import pytest
 from python_on_whales import docker, Image
 
 
-@pytest.fixture(scope="session")
-def image(pytestconfig):
-    """Builds image if needed."""
-    return docker.build(
-        tags="ci_base:testing", context_path=pytestconfig.rootdir, load=True
+def pytest_addoption(parser):
+    """Allow prebuilding image for local testing."""
+    parser.addoption(
+        "--prebuild",
+        action="store_true",
+        default=True,
+        help="Build local image before testing",
+    )
+    parser.addoption(
+        "--image",
+        action="store",
+        default="ci-base:testing",
+        help="Specify testing image name",
     )
 
 
 @pytest.fixture(scope="session")
+def image(request, pytestconfig):
+    """Builds image if needed."""
+    image_name = request.config.getoption("--image")
+    if request.config.getoption("--prebuild"):
+        return docker.build(
+            tags=image_name, context_path=pytestconfig.rootdir, load=True
+        )
+    else:
+        return docker.image.inspect(image_name)
+
+
+@pytest.fixture(scope="session")
 def container(image: Image):
-    """Return an exec shorthand for a running ci-base container."""
+    """Return container where commands can be run."""
     try:
         container = docker.container.run(
             detach=True, image=image, command=["sleep", "3600"]
