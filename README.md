@@ -1,4 +1,4 @@
-[![Last image-template](https://img.shields.io/badge/last%20template%20update-v1.0.0-informational)](https://github.com/Tecnativa/image-template/tree/v1.0.0)
+[![Last image-template](https://img.shields.io/badge/last%20template%20update-v1.1-informational)](https://github.com/Tecnativa/image-template/tree/v1.1)
 [![GitHub Container Registry](https://img.shields.io/badge/GitHub%20Container%20Registry-latest-%2324292e)](https://github.com/orgs/Tecnativa/packages/container/package/ci-base)
 
 # ci-base
