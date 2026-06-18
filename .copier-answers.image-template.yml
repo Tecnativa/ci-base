@@ -1,5 +1,5 @@
 # Changes here will be overwritten by Copier; do NOT edit manually
-_commit: v1.0.0
+_commit: v1.1
 _src_path: https://github.com/Tecnativa/image-template
 image_name: Tecnativa/ci-base
 image_platforms:
