@@ -2,26 +2,25 @@ FROM ghcr.io/astral-sh/uv:trixie
 ENV LANG=C.UTF-8 \
     DEBIAN_FRONTEND=noninteractive \
     UV_LINK_MODE=copy \
-    DOCKER_VERSION="5:29.4.3-1~debian.13~trixie" \
     PYTHON_VERSION="3.11" \
     DOCKER_BUILDKIT=1
 ARG LEGACY_COMPOSE=1
 RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     --mount=type=cache,target=/var/lib/apt,sharing=locked \
     apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    gnupg \
-    build-essential \
-    fish \
-    git \
-    jq \
-    libffi-dev \
-    podman \
-    buildah \
-    skopeo \
-    which \
-    expect \
+        ca-certificates \
+        curl \
+        gnupg \
+        build-essential \
+        fish \
+        git \
+        jq \
+        libffi-dev \
+        podman \
+        buildah \
+        skopeo \
+        which \
+        expect \
     && install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/debian/gpg \
     | gpg --dearmor -o /etc/apt/keyrings/docker.gpg \
@@ -31,19 +30,17 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
     > /etc/apt/sources.list.d/docker.list \
     && apt-get update  \
     && apt-get install -y --no-install-recommends \
-    docker-ce=${DOCKER_VERSION} \
-    docker-ce-cli=${DOCKER_VERSION} \
-    containerd.io \
-    docker-buildx-plugin \
-    docker-compose-plugin \
-    &&  curl -SL https://github.com/docker/compose/releases/download/v5.1.2/docker-compose-linux-x86_64 -o /usr/local/bin/docker-compose \
-    &&  chmod +x /usr/local/bin/docker-compose
+        docker-ce \
+        docker-ce-cli \
+        containerd.io \
+        docker-buildx-plugin \
+        docker-compose-plugin
+ADD --chmod=0755 https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 /usr/local/bin/docker-compose
 RUN uv venv -p ${PYTHON_VERSION} /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv pip install \
-    "ansible-core==2.16.14" \
     poetry \
     requests \
     urllib3 \
@@ -54,4 +51,5 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     pipx \
     python-on-whales \
     docker \
-    git-aggregator
+    git-aggregator \
+    prek
